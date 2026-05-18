@@ -1,22 +1,19 @@
-﻿import { Currency } from "../models/types";
+﻿import { PaymentStrategy } from "../strategies/PaymentStrategy";
 
 export class PaymentProcessor {
-    private apiKey: string;
-    private gatewayUrl: string;
+    private strategy: PaymentStrategy | null = null;
 
-    constructor(apiKey: string, gatewayUrl: string) {
-        this.apiKey = apiKey;
-        this.gatewayUrl = gatewayUrl;
+    // Metoda pozwalająca na dynamiczną zmianę strategii
+    public setStrategy(strategy: PaymentStrategy): void {
+        this.strategy = strategy;
     }
-    public async processPayment(reservationId: string, amount: number, currency: Currency, paymentMethodId: string): Promise<boolean> {
-        console.log(`Autoryzacja płatności: ${amount} ${currency} dla rezerwacji ${reservationId}...`);
 
-        // Symulacja opóźnienia zapytania do bramki płatniczej (np. BLIK / Karta)
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // Dla uproszczenia zadania zawsze zwracamy sukces (true)
-                resolve(true);
-            }, 800);
-        });
+    public async executePayment(reservationId: string, amount: number, currency: string): Promise<boolean> {
+        if (!this.strategy) {
+            throw new Error("Nie wybrano metody płatności (Brak strategii).");
+        }
+
+        // Wykonanie algorytmu zadeklarowanego w strategii
+        return await this.strategy.pay(amount, currency, reservationId);
     }
 }
